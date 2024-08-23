@@ -1,0 +1,146 @@
+const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
+const fs = require('fs').promises;
+const path = require('path');
+
+module.exports = {
+    name: 'ciz-ayar',
+    description: 'Görsel oluşturma ayarlarını düzenle',
+    async execute(message, args, client) {
+        const settingsPath = path.join(__dirname, '..', 'ciz.json');
+        let settings;
+
+        try {
+            const data = await fs.readFile(settingsPath, 'utf8');
+            settings = JSON.parse(data);
+        } catch (error) {
+            settings = {};
+        }
+
+        if (!settings[message.author.id]) {
+            settings[message.author.id] = {
+                steps: 30,
+                guidance: 7.5,
+                width: 512,
+                height: 512,
+                negative_prompt: "deformed, distorted, disfigured, poor details, bad anatomy, ugly"
+            };
+        }
+
+        const userSettings = settings[message.author.id];
+
+        const createEmbed = () => new MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle('Çizim Ayarları')
+            .addFields(
+                { name: 'Adımlar', value: userSettings.steps.toString(), inline: true },
+                { name: 'Guidance Scale', value: userSettings.guidance.toString(), inline: true },
+                { name: 'Genişlik', value: userSettings.width.toString(), inline: true },
+                { name: 'Yükseklik', value: userSettings.height.toString(), inline: true },
+                { name: 'Negatif Prompt', value: userSettings.negative_prompt }
+            );
+
+        const row = new MessageActionRow()
+            .addComponents(
+                new MessageButton()
+                    .setCustomId('steps')
+                    .setLabel('Adımlar')
+                    .setStyle('PRIMARY'),
+                new MessageButton()
+                    .setCustomId('guidance')
+                    .setLabel('Guidance')
+                    .setStyle('PRIMARY'),
+                new MessageButton()
+                    .setCustomId('width')
+                    .setLabel('Genişlik')
+                    .setStyle('PRIMARY'),
+                new MessageButton()
+                    .setCustomId('height')
+                    .setLabel('Yükseklik')
+                    .setStyle('PRIMARY'),
+                new MessageButton()
+                    .setCustomId('negative_prompt')
+                    .setLabel('Negatif Prompt')
+                    .setStyle('PRIMARY')
+            );
+
+        const sentMessage = await message.reply({ embeds: [createEmbed()], components: [row] });
+
+        const filter = i => i.user.id === message.author.id;
+        const collector = sentMessage.createMessageComponentCollector({ filter, time: 300000 });
+
+        collector.on('collect', async i => {
+            await i.deferUpdate();
+
+            const promptMessage = await message.channel.send(`Lütfen yeni ${i.component.label} değerini girin:`);
+            
+            try {
+                const collected = await message.channel.awaitMessages({
+                    filter: m => m.author.id === message.author.id,
+                    max: 1,
+                    time: 30000,
+                    errors: ['time']
+                });
+
+                const newValue = collected.first().content;
+
+                let isValid = true;
+                switch (i.customId) {
+                    case 'steps':
+                        const steps = parseInt(newValue);
+                        if (!isNaN(steps) && steps > 0) {
+                            userSettings.steps = steps;
+                        } else {
+                            isValid = false;
+                        }
+                        break;
+                    case 'guidance':
+                        const guidance = parseFloat(newValue);
+                        if (!isNaN(guidance) && guidance > 0) {
+                            userSettings.guidance = guidance;
+                        } else {
+                            isValid = false;
+                        }
+                        break;
+                    case 'width':
+                        const width = parseInt(newValue);
+                        if (!isNaN(width) && width > 0) {
+                            userSettings.width = width;
+                        } else {
+                            isValid = false;
+                        }
+                        break;
+                    case 'height':
+                        const height = parseInt(newValue);
+                        if (!isNaN(height) && height > 0) {
+                            userSettings.height = height;
+                        } else {
+                            isValid = false;
+                        }
+                        break;
+                    case 'negative_prompt':
+                        userSettings.negative_prompt = newValue;
+                        break;
+                }
+
+                if (isValid) {
+                    settings[message.author.id] = userSettings;
+                    await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+                    await message.channel.send(`${i.component.label} başarıyla güncellendi.`);
+                } else {
+                    await message.channel.send(`Geçersiz değer. ${i.component.label} ayarı değiştirilmedi.`);
+                }
+
+                await sentMessage.edit({ embeds: [createEmbed()], components: [row] });
+                await promptMessage.delete();
+                await collected.first().delete();
+            } catch (error) {
+                await message.channel.send('Zaman aşımı veya geçersiz giriş. Ayar değiştirilmedi.');
+                await promptMessage.delete();
+            }
+        });
+
+        collector.on('end', () => {
+            sentMessage.edit({ components: [] });
+        });
+    },
+};

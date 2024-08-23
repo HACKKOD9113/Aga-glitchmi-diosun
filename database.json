@@ -1,0 +1,32 @@
+{
+  "1055865214651871393": {
+    "kullaniciAdi": "Fearmess",
+    "bakiye": 3928,
+    "btc": 29,
+    "dogecoin": 59651538,
+    "altın": 0,
+    "ethereum": 1,
+    "euro": 0,
+    "dolar": 86900,
+    "elmas": 0,
+    "miningLevel": 4,
+    "sonİşlem": 1723665434607,
+    "unvan": [
+      "Savaşçı",
+      "Hükümdar"
+    ],
+    "sonGünlük": 1724421720423
+  },
+  "1062734938258034728": {
+    "kullaniciAdi": "F O X",
+    "bakiye": 502500000,
+    "btc": 0,
+    "dogecoin": 0,
+    "altın": 0,
+    "ethereum": 0,
+    "euro": 0,
+    "dolar": 0,
+    "elmas": 0,
+    "unvan": "Efendi"
+  }
+}

@@ -1,0 +1,24 @@
+const { PermissionsBitField } = require("discord.js");
+
+module.exports = {
+  name: "gay",
+  description: "Get a gay overlay on user's avatar",
+  /**
+   * @param {import('discord.js').Client} client
+   * @param {import('discord.js').Message} message
+   * @param {string[]} args
+   */
+  async execute(client, message, args) {
+    // Kullanıcıyı etiketle veya mesajı atan kullanıcıyı al
+    let user = message.mentions.users.first() || message.author;
+
+    // Kullanıcının avatar URL'sini al
+    let avatarUrl = user.displayAvatarURL({ size: 512, format: "jpg" });
+    let overlay = `https://some-random-api.ml/canvas/gay?avatar=${avatarUrl}`;
+
+    // Yanıtı gönder
+    await message.channel.send({
+      content: overlay,
+    });
+  },
+};

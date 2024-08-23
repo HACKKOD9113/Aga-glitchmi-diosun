@@ -1,0 +1,56 @@
+const axios = require('axios');
+
+const HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/UnfilteredAI/NSFW-3B";
+const HUGGINGFACE_API_KEY = "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"; // Hugging Face API anahtarınızı buraya ekleyin
+
+module.exports = {
+    name: 'sor',
+    description: 'TinyLLama-NSFW-Chatbot modeline bir soru sorun',
+    async execute(message, args) {
+        // Yaş sınırlaması kontrolü (örnek olarak)
+        if (!message.channel.nsfw) {
+            return message.reply('Bu komut sadece NSFW kanallarda kullanılabilir.');
+        }
+
+        if (args.length === 0) {
+            return message.reply('Ne sormak istediğini söyle, hadi ateş et!');
+        }
+
+        const soru = args.join(' ');
+        let cevap = await message.reply('Düşünüyorum, biraz bekle...');
+
+        try {
+            const response = await axios.post(
+                HUGGINGFACE_API_URL,
+                {
+                    inputs: `Human: ${soru}\n\nAssistant:`
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (response.data && response.data[0] && response.data[0].generated_text) {
+                let answer = response.data[0].generated_text.trim();
+                
+                // Cevabı parçalara bölelim ve her parçayı ayrı ayrı gönderelim
+                const chunkSize = 1500;
+                for (let i = 0; i < answer.length; i += chunkSize) {
+                    const chunk = answer.slice(i, i + chunkSize);
+                    await cevap.edit(`Soru: ${soru}\n\nCevap: ${chunk}`);
+                    if (i + chunkSize < answer.length) {
+                        cevap = await message.channel.send("Devamı geliyor...");
+                    }
+                }
+            } else {
+                await cevap.edit('Üzgünüm, bir cevap üretemiyorum. Tekrar dener misin?');
+            }
+        } catch (error) {
+            console.error('API isteği sırasında bir hata oluştu:', error);
+            await cevap.edit('Bir hata oluştu. Lütfen daha sonra tekrar dene.');
+        }
+    },
+};

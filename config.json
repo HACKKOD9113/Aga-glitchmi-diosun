@@ -1,0 +1,18 @@
+{
+    "token": "MTI2NzgwMTAyMTg3NTQ4NjczMA.GDMeu3.h-DbXfoZQQmPogGzLLWUUzYvjXrkP_tQqkcMd4",
+    "prefix": "f!",
+    "betLimit": 500000,
+    "miningCooldown": 0,
+    "updateInterval": 6,
+  "currencies": [
+    {"name": "Dogecoin", "symbol": "DOGE", "startingPrice": 0.1, "minPrice": 0.05, "maxPrice": 0.2},
+    {"name": "Bitcoin", "symbol": "BTC", "startingPrice": 30000, "minPrice": 25000, "maxPrice": 35000},
+    {"name": "Ethereum", "symbol": "ETH", "startingPrice": 2000, "minPrice": 1800, "maxPrice": 2200},
+    {"name": "Dolar", "symbol": "USD", "startingPrice": 1, "minPrice": 0.9, "maxPrice": 1.1},
+    {"name": "Euro", "symbol": "EUR", "startingPrice": 1.1, "minPrice": 1, "maxPrice": 1.2},
+    {"name": "Altın", "symbol": "GOLD", "startingPrice": 1800, "minPrice": 1700, "maxPrice": 1900},
+    {"name": "Elmas", "symbol": "DIAMOND", "startingPrice": 10000, "minPrice": 9000, "maxPrice": 11000}
+  ],
+  "miningInterval": 3,
+  "initialMiningRate": 0.001
+}

@@ -1,0 +1,47 @@
+const { Message, Client } = require('discord.js');
+const axios = require('axios');
+
+module.exports = {
+    name: 'çiz',
+    description: 'RealVisXL V4.0 modeli ile gerçekçi resim oluştur',
+    async execute(message, args, client) {
+        if (args.length === 0) {
+            return message.reply('Lütfen bir açıklama girin.');
+        }
+
+        const prompt = args.join(' ');
+        const huggingFaceUrl = 'https://api-inference.huggingface.co/models/SG161222/RealVisXL_V4.0';
+
+        try {
+            const response = await axios({
+                method: 'post',
+                url: huggingFaceUrl,
+                headers: {
+                    'Authorization': 'Bearer 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',
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify({
+                    inputs: prompt,
+                    parameters: {
+                        num_inference_steps: 30,
+                        guidance_scale: 7.5,
+                        width: 1024,
+                        height: 1024,
+                        negative_prompt: "deformed, distorted, disfigured, poor details, bad anatomy, ugly"
+                    }
+                }),
+                responseType: 'arraybuffer'
+            });
+
+            const buffer = Buffer.from(response.data, 'binary');
+
+            await message.channel.send({
+                content: `İşte "${prompt}" için RealVisXL V4.0 ile oluşturulan gerçekçi resim:`,
+                files: [{ attachment: buffer, name: 'realvisxl_image.png' }]
+            });
+        } catch (error) {
+            console.error('Hata:', error);
+            message.reply('Resim oluşturulurken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+        }
+    },
+};
